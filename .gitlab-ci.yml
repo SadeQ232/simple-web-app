@@ -1,0 +1,39 @@
+image: docker:latest
+
+variables:
+  REPOSITORY_URL: sadeq232/simple-web-application
+  IMAGE_TAG: latest
+
+services:
+- docker:dind-rootless
+
+before_script:
+  - docker login --username=$DH_USERNAME --password=$DH_PASSWORD
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "Building image..."
+    - docker build 
+      -t simple-web-application:latest 
+      --build-arg PORT=$PORT 
+      --no-cache .
+    - echo "Tagging image..."
+    - docker tag simple-web-application:latest $REPOSITORY_URL:latest
+    - echo "Pushing image..."
+    - docker push $REPOSITORY_URL:latest
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  script:
+    - docker stop simple-web-application || true && docker rm simple-web-application || true
+    - docker container run -dt -p $PORT:$PORT --name simple-web-application $REPOSITORY_URL:latest
+    - docker image prune -f
+  only:
+    - main
