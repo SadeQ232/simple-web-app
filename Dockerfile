@@ -1,7 +1,12 @@
-FROM nginx:alpine
+FROM nasqueron/nginx-php-fpm
 
-COPY . . /usr/share/nginx/html/
 
-RUN chown -R nginx:nginx /usr/share/nginx/html/
+RUN mkdir /app
 
-EXPOSE 8181
+COPY . . /app/
+
+WORKDIR /app
+
+RUN chmod 777 /app/order.txt
+
+COPY ./default /etc/nginx/sites-enabled/
